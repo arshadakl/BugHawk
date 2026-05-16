@@ -1,6 +1,76 @@
 #!/usr/bin/env bash
 # lib/scan.sh — vulnerability scanners (nuclei, dalfox, sqlmap, ffuf) in parallel
 
+# ── Interactive skip menu (fires on Ctrl+C during scans) ─────────────────────
+# Reads global PIDS and pid_descs arrays populated by run_scans().
+_skip_menu() {
+  printf "\r%-70s\r" " "   # clear progress line
+  echo ""
+  echo -e "${YELLOW}${BOLD}[!] Interrupted during scan.${RESET}"
+  echo -e "  ${BOLD}s${RESET}) skip a running tool and continue"
+  echo -e "  ${BOLD}a${RESET}) abort all running scans"
+  echo -e "  ${BOLD}c${RESET}) continue (default, auto in 10s)"
+  printf "Choice [s/a/c]: "
+
+  local choice
+  read -r -t 10 choice 2>/dev/null || choice="c"
+  choice="${choice:-c}"
+
+  case "${choice,,}" in
+    s)
+      local running=() running_descs=() i=0
+      while [ $i -lt ${#PIDS[@]} ]; do
+        local pid="${PIDS[$i]}"
+        if kill -0 "$pid" 2>/dev/null; then
+          running+=("$pid")
+          local j=0 desc="unknown tool"
+          while [ $j -lt ${#pid_descs[@]} ]; do
+            if [ "${pid_descs[$j]}" = "$pid" ]; then
+              desc="${pid_descs[$((j+1))]}"; break
+            fi
+            j=$((j+2))
+          done
+          running_descs+=("$desc")
+        fi
+        i=$((i+1))
+      done
+
+      if [ ${#running[@]} -eq 0 ]; then
+        log_info "No tools still running — continuing."; return
+      fi
+
+      echo ""
+      echo -e "  Running tools:"
+      local k=0
+      while [ $k -lt ${#running[@]} ]; do
+        echo -e "    $((k+1))) ${running_descs[$k]}"
+        k=$((k+1))
+      done
+      printf "Skip which? [1-%d] (default 1): " "${#running[@]}"
+
+      local pick
+      read -r -t 10 pick 2>/dev/null || pick="1"
+      pick="${pick:-1}"
+
+      if [[ "$pick" =~ ^[0-9]+$ ]] && [ "$pick" -ge 1 ] && [ "$pick" -le "${#running[@]}" ]; then
+        local kill_pid="${running[$((pick-1))]}"
+        kill "$kill_pid" 2>/dev/null || true
+        log_warn "Skipped tool PID $kill_pid — continuing with remaining..."
+      else
+        log_warn "Invalid choice — continuing."
+      fi
+      ;;
+    a)
+      log_warn "Aborting all scans..."
+      local p
+      for p in "${PIDS[@]}"; do kill "$p" 2>/dev/null || true; done
+      ;;
+    *)
+      log_info "Continuing..."
+      ;;
+  esac
+}
+
 # ── Quiet redirect helper ─────────────────────────────────────────────────────
 _quiet() {
   if [ "${QUIET_MODE:-false}" = "true" ]; then
@@ -80,28 +150,31 @@ run_scans() {
   local depth="${4:-full}"
 
   PIDS=()
-  local pid_descs=()
+  pid_descs=()   # global — readable by _skip_menu handler
+
+  # Trap Ctrl+C: show interactive skip menu instead of killing everything
+  trap '_skip_menu' INT
 
   log_info "nuclei — scanning with CVE + misconfiguration templates..."
-  run_nuclei "$target" "$outdir" &
+  ( trap '' INT; run_nuclei "$target" "$outdir" ) &
   local _p=$!; PIDS+=($_p); pid_descs+=($_p "nuclei: template-based CVE + misconfiguration scan")
 
   if [ "$depth" = "full" ]; then
     if [ "${ENABLE_DALFOX:-true}" = "true" ]; then
       log_info "dalfox — XSS detection on extracted parameters..."
-      run_dalfox "$outdir" &
+      ( trap '' INT; run_dalfox "$outdir" ) &
       local _p=$!; PIDS+=($_p); pid_descs+=($_p "dalfox: fuzzing XSS payloads on reflected parameters")
     fi
 
     if [ "${ENABLE_SQLMAP:-true}" = "true" ]; then
       log_info "sqlmap — SQL injection testing (this may take a while)..."
-      run_sqlmap "$outdir" &
+      ( trap '' INT; run_sqlmap "$outdir" ) &
       local _p=$!; PIDS+=($_p); pid_descs+=($_p "sqlmap: SQL injection exploitation — testing all params")
     fi
 
     if [ "${ENABLE_FFUF:-true}" = "true" ]; then
       log_info "ffuf — directory + endpoint fuzzing..."
-      run_ffuf "$domain" "$outdir" &
+      ( trap '' INT; run_ffuf "$domain" "$outdir" ) &
       local _p=$!; PIDS+=($_p); pid_descs+=($_p "ffuf: brute-forcing directories and hidden endpoints")
     fi
   else
@@ -118,6 +191,8 @@ run_scans() {
       failed=$((failed + 1))
     fi
   done
+
+  trap - INT   # restore default Ctrl+C behaviour after scans finish
 
   [ "$failed" -gt 0 ] && log_warn "$failed scanner(s) had errors. Results may be incomplete."
 

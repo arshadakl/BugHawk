@@ -56,6 +56,12 @@ Tool control:
   --skip-install-check      Skip tool installation check (faster on repeat runs)
   --allow-internal          Allow scanning private IP ranges (default: blocked)
 
+Timeouts (seconds, override config defaults):
+  --timeout-nuclei <s>      Nuclei scan timeout (default: 600)
+  --timeout-sqlmap <s>      SQLMap timeout (default: 600)
+  --timeout-ffuf <s>        ffuf fuzzing timeout (default: 180)
+  --timeout-nmap <s>        Nmap timeout (default: 300)
+
 AI control:
   --ai-tier <1|2|3|4>       Force a specific AI tier (overrides auto-routing)
   --no-ai                   Skip AI triage entirely
@@ -101,6 +107,10 @@ parse_args() {
       --skip-scan)     IFS=',' read -ra SKIP_TOOLS <<< "$2"; IFS=$' \t\n'; shift 2 ;;
       --skip-install-check) SKIP_INSTALL_CHECK=true;           shift   ;;
       --allow-internal)     ALLOW_INTERNAL=true;               shift   ;;
+      --timeout-nuclei)     TIMEOUT_NUCLEI="$2";               shift 2 ;;
+      --timeout-sqlmap)     TIMEOUT_SQLMAP="$2";               shift 2 ;;
+      --timeout-ffuf)       TIMEOUT_FFUF="$2";                 shift 2 ;;
+      --timeout-nmap)       TIMEOUT_NMAP="$2";                 shift 2 ;;
       --ai-tier)       FORCE_TIER="$2";                        shift 2 ;;
       --no-ai)         ENABLE_AI_TRIAGE=false;                 shift   ;;
       --output)        OUTPUT_DIR="$2";                        shift 2 ;;
