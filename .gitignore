@@ -1,0 +1,41 @@
+# ── Sensitive config (never commit) ──────────────────────────────────────────
+config.sh
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+api_keys.txt
+secrets.txt
+credentials.txt
+
+# ── Scan outputs (contain target data) ───────────────────────────────────────
+output/
+findings.json
+ai_triage.json
+ai_triage_raw.txt
+report.md
+h1_*.md
+errors.log
+chain_*.json
+
+# ── Tool artifacts ────────────────────────────────────────────────────────────
+nuclei-templates/
+*.log
+
+# ── Test mock outputs (generated data, not source) ───────────────────────────
+tests/mock_outputs/*.json
+
+# ── Cache (lives in HOME, but guard in case someone sets cache dir here) ──────
+.bughawk/
+
+# ── OS / editor junk ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
