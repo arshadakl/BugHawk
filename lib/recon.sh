@@ -35,10 +35,16 @@ run_whois() {
 
 # ── Nmap ──────────────────────────────────────────────────────────────────────
 run_nmap() {
-  local target="$1" outdir="$2"
+  local domain="$1" outdir="$2"
+  local port_arg=""
+  local port="${TARGET_PORT:-443}"
+  # Scan specific port when non-standard
+  if [ "$port" != "443" ] && [ "$port" != "80" ]; then
+    port_arg="-p $port"
+  fi
   safe_timeout "${TIMEOUT_NMAP:-300}" \
     nmap -sV --script=http-headers,http-title \
-    "$target" \
+    $port_arg "$domain" \
     -oX "$outdir/nmap.xml" \
     -oN "$outdir/nmap.txt" 2>/dev/null \
     || log_tool_error "nmap" "exited non-zero or timed out"
@@ -107,7 +113,7 @@ run_recon() {
 
   # nmap — cache both outputs together
   if ! cache_load "$domain" "nmap.txt" "$outdir"; then
-    run_nmap "$target" "$outdir" &
+    run_nmap "$domain" "$outdir" &
     local _p=$!; PIDS+=($_p); pid_descs+=($_p "nmap: port scan + service version detection")
   fi
 

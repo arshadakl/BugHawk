@@ -131,9 +131,12 @@ run_ffuf() {
     log_warn "wordlists/dirs.txt missing — skipping ffuf"
     return
   fi
+  local port="${TARGET_PORT:-443}"
+  local base_url="https://${domain}"
+  [ "$port" != "443" ] && base_url="https://${domain}:${port}"
   safe_timeout "${TIMEOUT_FFUF:-180}" \
     ffuf \
-      -u "https://${domain}/FUZZ" \
+      -u "${base_url}/FUZZ" \
       -w "$wordlist" \
       -mc "${FFUF_MATCH_CODES:-200,301,302,403,405}" \
       -t "${FFUF_THREADS:-50}" \

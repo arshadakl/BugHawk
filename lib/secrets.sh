@@ -29,7 +29,10 @@ SENSITIVE_PATHS=(
 # ── Trufflehog ────────────────────────────────────────────────────────────────
 run_trufflehog() {
   local domain="$1" outdir="$2"
-  trufflehog http --url "https://${domain}" \
+  local port="${TARGET_PORT:-443}"
+  local base_url="https://${domain}"
+  [ "$port" != "443" ] && base_url="https://${domain}:${port}"
+  trufflehog http --url "$base_url" \
     --json 2>/dev/null > "$outdir/trufflehog.json" \
     || log_tool_error "trufflehog" "exited non-zero"
 }
@@ -38,16 +41,19 @@ run_trufflehog() {
 # Writes to its own temp file to avoid race with run_sensitive_paths
 run_git_exposure() {
   local domain="$1" outdir="$2" tmpfile="$3"
+  local port="${TARGET_PORT:-443}"
+  local base_url="https://${domain}"
+  [ "$port" != "443" ] && base_url="https://${domain}:${port}"
   local http_status
   http_status=$(curl -s -o /dev/null -w "%{http_code}" \
-    "https://${domain}/.git/config" --max-time 10)
+    "${base_url}/.git/config" --max-time 10)
 
   if [ "$http_status" = "200" ]; then
     log_critical ".git directory publicly exposed on $domain"
-    echo "CRITICAL|git_exposure|https://${domain}/.git/config|.git directory publicly exposed" \
+    echo "CRITICAL|git_exposure|${base_url}/.git/config|.git directory publicly exposed" \
       >> "$tmpfile"
 
-    gitleaks detect --source "https://${domain}" \
+    gitleaks detect --source "${base_url}" \
       --report-format json \
       --report-path "$outdir/gitleaks.json" 2>/dev/null \
       || log_tool_error "gitleaks" "exited non-zero"
@@ -58,6 +64,9 @@ run_git_exposure() {
 # Writes to its own temp file to avoid race with run_git_exposure
 run_sensitive_paths() {
   local domain="$1" outdir="$2" tmpfile="$3"
+  local port="${TARGET_PORT:-443}"
+  local base_url="https://${domain}"
+  [ "$port" != "443" ] && base_url="https://${domain}:${port}"
   local found=0
 
   for path in "${SENSITIVE_PATHS[@]}"; do
@@ -65,10 +74,10 @@ run_sensitive_paths() {
 
     local status
     status=$(curl -s -o /dev/null -w "%{http_code}" \
-      "https://${domain}/${path}" --max-time 10)
+      "${base_url}/${path}" --max-time 10)
 
     if [[ "$status" =~ ^(200|206)$ ]]; then
-      echo "HIGH|sensitive_path|https://${domain}/${path}|HTTP $status" \
+      echo "HIGH|sensitive_path|${base_url}/${path}|HTTP $status" \
         >> "$tmpfile"
       log_warn "Sensitive path exposed: /${path} (HTTP $status)"
       found=$((found + 1))

@@ -89,9 +89,21 @@ install_trufflehog() {
 
 # ── Install gitleaks (GitHub releases binary) ─────────────────────────────────
 install_gitleaks() {
-  local os_tag="linux_amd64"
-  [ "$OS" = "mac" ] && os_tag="darwin_amd64"
-  [ "$OS" = "windows_bash" ] && os_tag="windows_amd64"
+  # Detect OS+arch — gitleaks uses linux_x64/linux_arm64/darwin_arm64/windows_x64
+  local arch
+  arch=$(uname -m)
+  local os_tag
+  case "$OS" in
+    mac)
+      [ "$arch" = "arm64" ] && os_tag="darwin_arm64" || os_tag="darwin_x64"
+      ;;
+    windows_bash)
+      os_tag="windows_x64"
+      ;;
+    *)  # linux, wsl
+      [ "$arch" = "aarch64" ] && os_tag="linux_arm64" || os_tag="linux_x64"
+      ;;
+  esac
   local url
   url=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest \
         | grep "browser_download_url" | grep "${os_tag}.tar.gz" | head -1 \
@@ -136,7 +148,12 @@ install_tool() {
       esac ;;
     whois)       install_via_pkg whois ;;
     sqlmap)      pip3 install sqlmap --break-system-packages &>/dev/null ;;
-    paramspider) pip3 install paramspider --break-system-packages &>/dev/null ;;
+    paramspider)
+      # Try PyPI first; fall back to GitHub source (Python 3.13 compat)
+      pip3 install paramspider --break-system-packages &>/dev/null || \
+      pip3 install "git+https://github.com/devanshbatham/paramspider" \
+        --break-system-packages &>/dev/null || true
+      ;;
     subfinder)   install_go_tool "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest" ;;
     httpx)       install_go_tool "github.com/projectdiscovery/httpx/cmd/httpx@latest" ;;
     nuclei)

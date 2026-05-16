@@ -183,6 +183,15 @@ parse_target() {
   # Extract domain from URL
   TARGET_DOMAIN=$(echo "$TARGET" | sed -E 's|https?://||' | cut -d'/' -f1 | cut -d':' -f1)
 
+  # Extract port from URL (e.g. https://host:446/ → 446)
+  local raw_host
+  raw_host=$(echo "$TARGET" | sed -E 's|https?://||' | cut -d'/' -f1)
+  if echo "$raw_host" | grep -q ':'; then
+    TARGET_PORT=$(echo "$raw_host" | cut -d':' -f2)
+  else
+    echo "$TARGET" | grep -q '^https' && TARGET_PORT="443" || TARGET_PORT="80"
+  fi
+
   # Output directory
   local ts
   ts=$(date '+%Y%m%d_%H%M')

@@ -44,6 +44,8 @@ if nuclei_file.exists() and nuclei_file.stat().st_size > 0:
             continue
         try:
             r = json.loads(line)
+            if not isinstance(r, dict):
+                continue
             url = r.get("host") or r.get("matched-at", "")
             info = r.get("info", {})
             add(
@@ -68,6 +70,8 @@ if httpx_file.exists() and httpx_file.stat().st_size > 0:
             continue
         try:
             r = json.loads(line)
+            if not isinstance(r, dict):
+                continue
             status = r.get("status_code", 0)
             tech = r.get("tech", [])
             # Only report interesting status codes or known risky tech
