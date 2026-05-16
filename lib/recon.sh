@@ -75,7 +75,10 @@ run_gf_patterns() {
 # ── Paramspider ───────────────────────────────────────────────────────────────
 run_paramspider() {
   local domain="$1" outdir="$2"
-  paramspider -d "$domain" --output "$outdir/paramspider.txt" --quiet 2>/dev/null \
+  local port="${TARGET_PORT:-443}"
+  local port_arg=""
+  [ "$port" != "443" ] && port_arg="--port $port"
+  paramspider -d "$domain" $port_arg --output "$outdir/paramspider.txt" --quiet 2>/dev/null \
     || log_tool_error "paramspider" "exited non-zero"
 }
 
