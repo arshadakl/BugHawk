@@ -140,6 +140,7 @@ run_ffuf() {
       -w "$wordlist" \
       -mc "${FFUF_MATCH_CODES:-200,301,302,403,405}" \
       -t "${FFUF_THREADS:-50}" \
+      -maxtime "${TIMEOUT_FFUF:-180}" \
       -json -o "$outdir/ffuf.json" \
       -s 2>/dev/null \
     || log_tool_error "ffuf" "exited non-zero or timed out"

@@ -201,6 +201,57 @@ if gitleaks_file.exists() and gitleaks_file.stat().st_size > 0:
     except (json.JSONDecodeError, Exception):
         pass
 
+# ── Subzy (subdomain takeover) ───────────────────────────────────────────────
+takeover_file = Path(outdir) / "takeover.json"
+if takeover_file.exists() and takeover_file.stat().st_size > 0:
+    try:
+        data = json.loads(takeover_file.read_text(errors="ignore"))
+        items = data if isinstance(data, list) else [data]
+        for r in items:
+            if not isinstance(r, dict):
+                continue
+            if r.get("vulnerable") or r.get("is_vulnerable"):
+                sub = r.get("subdomain", r.get("target", ""))
+                svc = r.get("service", r.get("fingerprint", "unknown service"))
+                add(
+                    tool="subzy",
+                    severity="high",
+                    ftype="subdomain-takeover",
+                    url=sub,
+                    parameter="",
+                    evidence=f"Service: {svc}",
+                    description=f"Subdomain takeover possible: {sub} → {svc}",
+                    raw=json.dumps(r)[:500],
+                )
+    except (json.JSONDecodeError, Exception):
+        pass
+
+# ── testssl (SSL/TLS findings) ────────────────────────────────────────────────
+ssl_file = Path(outdir) / "ssl.json"
+if ssl_file.exists() and ssl_file.stat().st_size > 0:
+    try:
+        data = json.loads(ssl_file.read_text(errors="ignore"))
+        findings_list = data.get("scanResult", [{}])[0].get("findings", []) if isinstance(data, dict) else []
+        sev_map = {"CRITICAL": "critical", "HIGH": "high", "MEDIUM": "medium", "LOW": "low", "INFO": "info", "OK": "info", "WARN": "medium"}
+        for r in findings_list:
+            if not isinstance(r, dict):
+                continue
+            finding_sev = r.get("severity", "INFO").upper()
+            if finding_sev in ("OK", "INFO", "DEBUG"):
+                continue
+            add(
+                tool="testssl",
+                severity=sev_map.get(finding_sev, "info"),
+                ftype=f"ssl-{r.get('id','finding').lower()}",
+                url=r.get("ip", ""),
+                parameter="",
+                evidence=r.get("finding", "")[:300],
+                description=r.get("id", "SSL/TLS issue"),
+                raw=json.dumps(r)[:500],
+            )
+    except (json.JSONDecodeError, Exception):
+        pass
+
 # ── manual_findings.txt (pipe-delimited) ──────────────────────────────────────
 manual_file = Path(outdir) / "manual_findings.txt"
 if manual_file.exists() and manual_file.stat().st_size > 0:

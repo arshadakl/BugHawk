@@ -3,7 +3,7 @@
 set -euo pipefail
 
 BUGHAWK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TOTAL_STEPS=7
+TOTAL_STEPS=8
 
 # ── Source libraries ──────────────────────────────────────────────────────────
 source "$BUGHAWK_DIR/lib/utils.sh"
@@ -11,6 +11,7 @@ source "$BUGHAWK_DIR/lib/cache.sh"
 source "$BUGHAWK_DIR/lib/setup.sh"
 source "$BUGHAWK_DIR/lib/recon.sh"
 source "$BUGHAWK_DIR/lib/scan.sh"
+source "$BUGHAWK_DIR/lib/active.sh"
 source "$BUGHAWK_DIR/lib/secrets.sh"
 source "$BUGHAWK_DIR/lib/aggregator.sh"
 source "$BUGHAWK_DIR/lib/ai.sh"
@@ -203,7 +204,8 @@ parse_target() {
 
 # ── Valid tool names for --skip-scan ─────────────────────────────────────────
 VALID_SKIP_TOOLS=(subfinder httpx nmap whois waybackurls gf paramspider
-                  nuclei dalfox sqlmap ffuf trufflehog gitleaks)
+                  nuclei dalfox sqlmap ffuf trufflehog gitleaks
+                  cors headers redirect lfi takeover ssl ssrf)
 
 # ── Validate and apply --skip-scan flags ──────────────────────────────────────
 apply_skip_tools() {
@@ -226,6 +228,13 @@ apply_skip_tools() {
       trufflehog)  ENABLE_SECRETS=false ;;
       waybackurls) ENABLE_WAYBACK=false ;;
       paramspider) ENABLE_PARAMSPIDER=false ;;
+      cors)        ENABLE_CORS_CHECK=false ;;
+      headers)     ENABLE_HEADERS_CHECK=false ;;
+      redirect)    ENABLE_REDIRECT_CHECK=false ;;
+      lfi)         ENABLE_LFI_ACTIVE=false ;;
+      takeover)    ENABLE_TAKEOVER=false ;;
+      ssl)         ENABLE_SSL_CHECK=false ;;
+      ssrf)        ENABLE_SSRF_OOB=false ;;
     esac
     log_info "Skipping tool: $tool"
   done
@@ -299,20 +308,26 @@ main() {
   run_scans "$TARGET" "$TARGET_DOMAIN" "$OUTDIR" "$DEPTH"
   log_success "Scanning done in $(( SECONDS - step_start ))s"
 
-  # Phase 5 — Secrets
-  log_step 4 "Secrets detection"
+  # Phase 5 — Active Checks
+  log_step 4 "Active checks"
+  step_start=$SECONDS
+  run_active "$TARGET" "$TARGET_DOMAIN" "$OUTDIR"
+  log_success "Active checks done in $(( SECONDS - step_start ))s"
+
+  # Phase 6 — Secrets
+  log_step 5 "Secrets detection"
   step_start=$SECONDS
   run_secrets "$TARGET" "$TARGET_DOMAIN" "$OUTDIR"
   log_success "Secrets done in $(( SECONDS - step_start ))s"
 
-  # Phase 6 — Aggregation
-  log_step 5 "Aggregating findings"
+  # Phase 7 — Aggregation
+  log_step 6 "Aggregating findings"
   step_start=$SECONDS
   aggregate_findings "$OUTDIR"
   log_success "Aggregation done in $(( SECONDS - step_start ))s"
 
-  # Phase 7 — AI Triage
-  log_step 6 "AI triage"
+  # Phase 8 — AI Triage
+  log_step 7 "AI triage"
   step_start=$SECONDS
   if [ "${ENABLE_AI_TRIAGE:-true}" = "true" ]; then
     run_ai_triage "$TARGET" "$OUTDIR"
@@ -321,8 +336,8 @@ main() {
     log_info "AI triage skipped (--no-ai)"
   fi
 
-  # Phase 8 — Report
-  log_step 7 "Generating report"
+  # Phase 9 — Report
+  log_step 8 "Generating report"
   step_start=$SECONDS
   if [ "${NO_REPORT:-false}" != "true" ]; then
     generate_report "$TARGET" "$OUTDIR"

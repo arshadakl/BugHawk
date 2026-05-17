@@ -78,8 +78,17 @@ run_paramspider() {
   local port="${TARGET_PORT:-443}"
   local port_arg=""
   [ "$port" != "443" ] && port_arg="--port $port"
-  paramspider -d "$domain" $port_arg --output "$outdir/paramspider.txt" --quiet 2>/dev/null \
-    || log_tool_error "paramspider" "exited non-zero"
+
+  # v2 writes to results/<domain>.txt — move it after run
+  paramspider -d "$domain" $port_arg 2>/dev/null || true
+
+  local ps_out="results/${domain}.txt"
+  if [ -f "$ps_out" ]; then
+    cat "$ps_out" >> "$outdir/paramspider.txt"
+    rm -f "$ps_out"
+  else
+    log_tool_error "paramspider" "output file not found (results/${domain}.txt)"
+  fi
 }
 
 # ── Main Recon Function ───────────────────────────────────────────────────────

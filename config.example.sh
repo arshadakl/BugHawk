@@ -48,6 +48,17 @@ ENABLE_AI_TRIAGE=true
 ENABLE_H1_REPORT=true
 SKIP_INSTALL_CHECK=false
 
+# ── Active Checks ─────────────────────────────────────────────────────────────
+ENABLE_ACTIVE=true            # master switch for all active checks below
+ENABLE_CORS_CHECK=true        # CORS misconfiguration (curl-based)
+ENABLE_HEADERS_CHECK=true     # missing security headers (curl-based)
+ENABLE_REDIRECT_CHECK=true    # open redirect injection on gf redirect params
+ENABLE_LFI_ACTIVE=true        # LFI payload injection on gf lfi params
+ENABLE_TAKEOVER=true          # subdomain takeover check via subzy
+ENABLE_SSL_CHECK=true         # SSL/TLS analysis via testssl.sh
+ENABLE_SSRF_OOB=false         # SSRF OOB via interactsh (requires interactsh-client)
+TIMEOUT_SSL=180               # testssl timeout (seconds)
+
 # ── Output ────────────────────────────────────────────────────────────────────
 OUTPUT_DIR="./output"
 OPEN_REPORT_AFTER=true        # auto-open report.md when done

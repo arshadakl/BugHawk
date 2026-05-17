@@ -173,6 +173,15 @@ install_tool() {
     anew)        install_go_tool "github.com/tomnomnom/anew@latest" ;;
     trufflehog)  install_trufflehog ;;
     gitleaks)    install_gitleaks ;;
+    subzy)       install_go_tool "github.com/PentestPad/subzy@latest" ;;
+    testssl)
+      if [ ! -d "/opt/testssl" ]; then
+        git clone --depth 1 https://github.com/drwetter/testssl.sh /opt/testssl &>/dev/null \
+          && chmod +x /opt/testssl/testssl.sh \
+          || log_warn "testssl clone failed — SSL check will be skipped"
+      fi ;;
+    interactsh-client)
+      install_go_tool "github.com/projectdiscovery/interactsh/cmd/interactsh-client@latest" ;;
     *)           log_warn "No install handler for: $tool"; return 1 ;;
   esac
 }
@@ -199,6 +208,9 @@ get_version() {
     trufflehog)  trufflehog --version 2>/dev/null | head -1 ;;
     gitleaks)    gitleaks version 2>/dev/null ;;
     whois)       whois --version 2>/dev/null | head -1 || echo "installed" ;;
+    subzy)       "$HOME/go/bin/subzy" version 2>/dev/null | head -1 || echo "installed" ;;
+    testssl)     [ -x /opt/testssl/testssl.sh ] && /opt/testssl/testssl.sh --version 2>/dev/null | head -1 || echo "not found" ;;
+    interactsh-client) "$HOME/go/bin/interactsh-client" -version 2>/dev/null | head -1 || echo "installed" ;;
     *)           echo "unknown" ;;
   esac
 }
@@ -221,6 +233,7 @@ run_setup() {
     subfinder httpx nuclei nmap sqlmap dalfox ffuf
     gf waybackurls anew paramspider
     trufflehog gitleaks whois
+    subzy testssl interactsh-client
   )
 
   print_tool_table_header
@@ -229,7 +242,10 @@ run_setup() {
   for tool in "${tools[@]}"; do
     local binary="$tool"
     # httpx binary lives in go/bin to avoid Python httpx conflict
-    [ "$tool" = "httpx" ] && binary="$HOME/go/bin/httpx"
+    [ "$tool" = "httpx" ]              && binary="$HOME/go/bin/httpx"
+    [ "$tool" = "subzy" ]              && binary="$HOME/go/bin/subzy"
+    [ "$tool" = "interactsh-client" ]  && binary="$HOME/go/bin/interactsh-client"
+    [ "$tool" = "testssl" ]            && binary="/opt/testssl/testssl.sh"
 
     if command -v "$binary" &>/dev/null 2>&1 || [ -x "$binary" ]; then
       local ver
