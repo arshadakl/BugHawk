@@ -149,13 +149,16 @@ run_ssl_check() {
     return
   fi
 
+  # testssl exits non-zero when it finds issues — that's expected, not a failure
   safe_timeout "${TIMEOUT_SSL:-180}" \
     "$testssl_bin" \
       --jsonfile "$outdir/ssl.json" \
       --quiet \
       --color 0 \
-      "${domain}:${port}" 2>/dev/null \
-    || log_tool_error "testssl" "exited non-zero or timed out"
+      "${domain}:${port}" 2>/dev/null || true
+
+  [ ! -s "$outdir/ssl.json" ] \
+    && log_tool_error "testssl" "no output written — likely timed out or unreachable"
 }
 
 # ── SSRF OOB Detection ────────────────────────────────────────────────────────

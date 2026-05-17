@@ -173,7 +173,7 @@ install_tool() {
     anew)        install_go_tool "github.com/tomnomnom/anew@latest" ;;
     trufflehog)  install_trufflehog ;;
     gitleaks)    install_gitleaks ;;
-    jsluice)     install_go_tool "github.com/BishopFox/jsluice/cmd/jsluice@latest" ;;
+    jsluice)     install_go_tool "github.com/bishopfox/jsluice/cmd/jsluice@latest" ;;
     getJS)       install_go_tool "github.com/003random/getJS@latest" ;;
     subzy)       install_go_tool "github.com/PentestPad/subzy@latest" ;;
     testssl)
