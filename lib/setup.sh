@@ -173,6 +173,8 @@ install_tool() {
     anew)        install_go_tool "github.com/tomnomnom/anew@latest" ;;
     trufflehog)  install_trufflehog ;;
     gitleaks)    install_gitleaks ;;
+    jsluice)     install_go_tool "github.com/BishopFox/jsluice/cmd/jsluice@latest" ;;
+    getJS)       install_go_tool "github.com/003random/getJS@latest" ;;
     subzy)       install_go_tool "github.com/PentestPad/subzy@latest" ;;
     testssl)
       if [ ! -d "/opt/testssl" ]; then
@@ -208,6 +210,8 @@ get_version() {
     trufflehog)  trufflehog --version 2>/dev/null | head -1 ;;
     gitleaks)    gitleaks version 2>/dev/null ;;
     whois)       whois --version 2>/dev/null | head -1 || echo "installed" ;;
+    jsluice)     "$HOME/go/bin/jsluice" --help 2>&1 | head -1 || echo "installed" ;;
+    getJS)       "$HOME/go/bin/getJS" --help 2>&1 | head -1 || echo "installed" ;;
     subzy)       "$HOME/go/bin/subzy" version 2>/dev/null | head -1 || echo "installed" ;;
     testssl)     [ -x /opt/testssl/testssl.sh ] && /opt/testssl/testssl.sh --version 2>/dev/null | head -1 || echo "not found" ;;
     interactsh-client) "$HOME/go/bin/interactsh-client" -version 2>/dev/null | head -1 || echo "installed" ;;
@@ -233,7 +237,7 @@ run_setup() {
     subfinder httpx nuclei nmap sqlmap dalfox ffuf
     gf waybackurls anew paramspider
     trufflehog gitleaks whois
-    subzy testssl interactsh-client
+    jsluice getJS subzy testssl interactsh-client
   )
 
   print_tool_table_header
@@ -243,6 +247,8 @@ run_setup() {
     local binary="$tool"
     # httpx binary lives in go/bin to avoid Python httpx conflict
     [ "$tool" = "httpx" ]              && binary="$HOME/go/bin/httpx"
+    [ "$tool" = "jsluice" ]            && binary="$HOME/go/bin/jsluice"
+    [ "$tool" = "getJS" ]              && binary="$HOME/go/bin/getJS"
     [ "$tool" = "subzy" ]              && binary="$HOME/go/bin/subzy"
     [ "$tool" = "interactsh-client" ]  && binary="$HOME/go/bin/interactsh-client"
     [ "$tool" = "testssl" ]            && binary="/opt/testssl/testssl.sh"

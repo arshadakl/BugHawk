@@ -3,7 +3,7 @@
 set -euo pipefail
 
 BUGHAWK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TOTAL_STEPS=8
+TOTAL_STEPS=9
 
 # ── Source libraries ──────────────────────────────────────────────────────────
 source "$BUGHAWK_DIR/lib/utils.sh"
@@ -12,6 +12,7 @@ source "$BUGHAWK_DIR/lib/setup.sh"
 source "$BUGHAWK_DIR/lib/recon.sh"
 source "$BUGHAWK_DIR/lib/scan.sh"
 source "$BUGHAWK_DIR/lib/active.sh"
+source "$BUGHAWK_DIR/lib/js.sh"
 source "$BUGHAWK_DIR/lib/secrets.sh"
 source "$BUGHAWK_DIR/lib/aggregator.sh"
 source "$BUGHAWK_DIR/lib/ai.sh"
@@ -205,7 +206,7 @@ parse_target() {
 # ── Valid tool names for --skip-scan ─────────────────────────────────────────
 VALID_SKIP_TOOLS=(subfinder httpx nmap whois waybackurls gf paramspider
                   nuclei dalfox sqlmap ffuf trufflehog gitleaks
-                  cors headers redirect lfi takeover ssl ssrf)
+                  cors headers redirect lfi takeover ssl ssrf js)
 
 # ── Validate and apply --skip-scan flags ──────────────────────────────────────
 apply_skip_tools() {
@@ -235,6 +236,7 @@ apply_skip_tools() {
       takeover)    ENABLE_TAKEOVER=false ;;
       ssl)         ENABLE_SSL_CHECK=false ;;
       ssrf)        ENABLE_SSRF_OOB=false ;;
+      js)          ENABLE_JS_ANALYSIS=false ;;
     esac
     log_info "Skipping tool: $tool"
   done
@@ -314,20 +316,26 @@ main() {
   run_active "$TARGET" "$TARGET_DOMAIN" "$OUTDIR"
   log_success "Active checks done in $(( SECONDS - step_start ))s"
 
-  # Phase 6 — Secrets
-  log_step 5 "Secrets detection"
+  # Phase 6 — JS Analysis
+  log_step 5 "JavaScript analysis"
+  step_start=$SECONDS
+  run_js_analysis "$TARGET_DOMAIN" "$OUTDIR"
+  log_success "JS analysis done in $(( SECONDS - step_start ))s"
+
+  # Phase 7 — Secrets
+  log_step 6 "Secrets detection"
   step_start=$SECONDS
   run_secrets "$TARGET" "$TARGET_DOMAIN" "$OUTDIR"
   log_success "Secrets done in $(( SECONDS - step_start ))s"
 
-  # Phase 7 — Aggregation
-  log_step 6 "Aggregating findings"
+  # Phase 8 — Aggregation
+  log_step 7 "Aggregating findings"
   step_start=$SECONDS
   aggregate_findings "$OUTDIR"
   log_success "Aggregation done in $(( SECONDS - step_start ))s"
 
-  # Phase 8 — AI Triage
-  log_step 7 "AI triage"
+  # Phase 9 — AI Triage
+  log_step 8 "AI triage"
   step_start=$SECONDS
   if [ "${ENABLE_AI_TRIAGE:-true}" = "true" ]; then
     run_ai_triage "$TARGET" "$OUTDIR"
@@ -336,8 +344,8 @@ main() {
     log_info "AI triage skipped (--no-ai)"
   fi
 
-  # Phase 9 — Report
-  log_step 8 "Generating report"
+  # Phase 10 — Report
+  log_step 9 "Generating report"
   step_start=$SECONDS
   if [ "${NO_REPORT:-false}" != "true" ]; then
     generate_report "$TARGET" "$OUTDIR"

@@ -59,6 +59,9 @@ ENABLE_SSL_CHECK=true         # SSL/TLS analysis via testssl.sh
 ENABLE_SSRF_OOB=false         # SSRF OOB via interactsh (requires interactsh-client)
 TIMEOUT_SSL=180               # testssl timeout (seconds)
 
+# ── JS Analysis ───────────────────────────────────────────────────────────────
+ENABLE_JS_ANALYSIS=true       # extract endpoints + secrets from JavaScript files
+
 # ── Output ────────────────────────────────────────────────────────────────────
 OUTPUT_DIR="./output"
 OPEN_REPORT_AFTER=true        # auto-open report.md when done
