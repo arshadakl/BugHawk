@@ -238,8 +238,8 @@ run_triage() {
   { call_openrouter "$model" "$prompt" "$outdir" > "$ai_tmp"; } &
   local ai_pid=$!
   show_spinner "$ai_pid" "AI ($model): analysing findings, detecting exploit chains..."
-  wait "$ai_pid" 2>/dev/null
-  ai_response=$(cat "$ai_tmp" 2>/dev/null)
+  wait "$ai_pid" 2>/dev/null || true
+  ai_response=$(cat "$ai_tmp" 2>/dev/null) || true
   rm -f "$ai_tmp"
 
   if validate_json "$ai_response" 2>/dev/null; then
@@ -283,14 +283,14 @@ for f in findings:
         merged.append(f)
 print(json.dumps(merged, indent=2))
 PYEOF
-)
+) || true
 
     [ -z "$chain_findings" ] && continue
 
     local prompt
     prompt=$(build_chain_prompt "$chain_findings")
     local chain_response
-    chain_response=$(call_openrouter "$model" "$prompt" "$outdir")
+    chain_response=$(call_openrouter "$model" "$prompt" "$outdir") || true
 
     if validate_json "$chain_response" 2>/dev/null; then
       echo "$chain_response" > "$outdir/chain_${chain_id}.json"
@@ -323,7 +323,7 @@ for f in findings:
     if t.get("is_real") and f.get("severity") in ("critical","high"):
         print(f["id"])
 PYEOF
-)
+) || true
 
   [ -z "$crit_ids" ] && return
 
@@ -342,19 +342,21 @@ for f in findings:
         print(json.dumps(f, indent=2))
         break
 PYEOF
-)
+) || true
+
+    [ -z "$finding_json" ] && continue
 
     # Include chain context if this finding is part of a chain
     local cid
-    cid=$(jq -r --argjson fid "$fid" '.[] | select(.id == $fid) | .chain_id // "null"' "$outdir/ai_triage.json" 2>/dev/null)
-    if [ "$cid" != "null" ] && [ -f "$outdir/chain_${cid}.json" ]; then
+    cid=$(jq -r --argjson fid "$fid" '.[] | select(.id == $fid) | .chain_id // "null"' "$outdir/ai_triage.json" 2>/dev/null) || true
+    if [ "${cid:-null}" != "null" ] && [ -f "$outdir/chain_${cid}.json" ]; then
       chain_json=$(cat "$outdir/chain_${cid}.json")
     fi
 
     local prompt
     prompt=$(build_h1_prompt "$finding_json" "$chain_json")
     local h1_response
-    h1_response=$(call_openrouter "$h1_model" "$prompt" "$outdir")
+    h1_response=$(call_openrouter "$h1_model" "$prompt" "$outdir") || true
 
     if [ -n "$h1_response" ]; then
       local ftype

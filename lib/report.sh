@@ -213,7 +213,7 @@ for f in sorted_findings:
     lines.append(f"---")
     lines.append(f"")
 
-report_path.write_text("\n".join(lines))
+report_path.write_text("\n".join(lines), encoding="utf-8")
 print(f"report.md written ({len(findings)} findings)")
 PYEOF
 

@@ -338,7 +338,8 @@ main() {
   log_step 8 "AI triage"
   step_start=$SECONDS
   if [ "${ENABLE_AI_TRIAGE:-true}" = "true" ]; then
-    run_ai_triage "$TARGET" "$OUTDIR"
+    run_ai_triage "$TARGET" "$OUTDIR" \
+      || log_warn "AI triage had errors — report will use raw findings"
     log_success "AI triage done in $(( SECONDS - step_start ))s"
   else
     log_info "AI triage skipped (--no-ai)"
